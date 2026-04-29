@@ -26,6 +26,7 @@ pnpm dev templates
 pnpm dev init oss-cli my-tool --dry-run
 pnpm dev init oss-cli my-tool
 pnpm dev init oss-cli my-tool --prd ./docs/PRD.md --tasks ./docs/TASKS.md
+pnpm dev init oss-cli my-tool --prd ./docs/PRD.md --taskbrief
 ```
 
 The V1 release bar is a documented, deterministic command surface:
@@ -73,6 +74,23 @@ StackForge is local-first and review-friendly:
 ## Local planning docs
 
 Use `--prd <path>` and `--tasks <path>` with `stackforge init` to copy local planning inputs into the generated repo as `docs/PRD.md` and `docs/TASKS.md`.
+
+### Taskbrief-generated tasks
+
+If you want StackForge to derive `docs/TASKS.md` from a PRD after the scaffold is written, use `--taskbrief`:
+
+```bash
+pnpm dev init oss-cli my-tool --prd ./docs/PRD.md --taskbrief
+pnpm dev init oss-cli my-tool --prd ./docs/PRD.md --taskbrief --taskbrief-workspace ./taskbrief
+```
+
+Rules:
+
+- `--taskbrief` requires `--prd`
+- `--taskbrief` cannot be combined with `--tasks`
+- dry-run prints the planned `taskbrief parse ... --format markdown --output docs/TASKS.md` command without executing it
+- execute mode runs `taskbrief` locally after StackForge writes the scaffold files
+- if `taskbrief` is missing from `PATH` or exits non-zero, StackForge fails with a clear error
 
 ## Release readiness docs
 
