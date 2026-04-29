@@ -72,6 +72,8 @@ test -f smoke-app/README.md
 test -f smoke-app/package.json
 test -f smoke-app/docs/PRD.md
 test -f smoke-app/docs/TASKS.md
+test -f smoke-app/.github/dependabot.yml
+test -f smoke-app/.github/workflows/ci.yml
 grep -q "# smoke-app" smoke-app/README.md
 grep -q "Smoke Tester" smoke-app/package.json
 grep -q "This is a copied PRD" smoke-app/docs/PRD.md

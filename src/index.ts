@@ -90,6 +90,7 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/release/ROADMAP.template.md', destination: 'ROADMAP.md' },
       { source: 'templates/github/pull_request_template.md', destination: '.github/pull_request_template.md' },
       { source: 'templates/github/dependabot.yml', destination: '.github/dependabot.yml' },
+      { source: 'templates/github/workflows/ci.yml', destination: '.github/workflows/ci.yml' },
       { source: 'templates/agents/AGENTS.template.md', destination: 'AGENTS.md' },
       { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
       { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' }
