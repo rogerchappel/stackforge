@@ -43,6 +43,13 @@ type GithubPlan = {
   visibility: GithubVisibility;
   repository: string;
   command: string[];
+  publish: GitPublishPlan;
+};
+
+type GitPublishPlan = {
+  mode: 'noop' | 'dry-run' | 'execute';
+  remote: string;
+  commands: string[][];
 };
 
 type WritePlanItem = {
@@ -165,6 +172,7 @@ program
         return;
       }
 
+      const projectRootExisted = await pathExists(projectRoot);
       const plan = await buildWritePlan(templateScaffolds[template], projectRoot, variables, options);
       const existing = plan.filter((item) => item.existed);
       const githubPlan = buildGithubPlan(projectRoot, variables, options);
@@ -198,6 +206,15 @@ program
         return;
       }
 
+      if (githubPlan.mode === 'execute' && projectRootExisted) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: 'Refusing to initialize and push git history for an existing project directory. Choose a fresh project name for --github-execute so StackForge only publishes a newly generated scaffold.'
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+
       if (!options.dryRun) {
         for (const item of plan) {
           await mkdir(path.dirname(item.destination), { recursive: true });
@@ -210,6 +227,7 @@ program
 
         if (githubPlan.mode === 'execute') {
           await runGithubCreate(githubPlan.command);
+          await runGitPublish(githubPlan.publish.commands);
         }
       }
 
@@ -386,9 +404,10 @@ function buildTaskbriefPlan(projectRoot: string, options: InitOptions): Taskbrie
   };
 }
 
-function buildGithubPlan(_projectRoot: string, variables: Record<string, string>, options: InitOptions): GithubPlan {
+function buildGithubPlan(projectRoot: string, variables: Record<string, string>, options: InitOptions): GithubPlan {
   const visibility = options.githubVisibility ?? 'private';
   const repository = `${variables.GITHUB_OWNER}/${variables.GITHUB_REPO}`;
+  const mode = options.githubCreate ? (options.githubExecute ? 'execute' : 'dry-run') : 'noop';
   const command = [
     'gh',
     'repo',
@@ -398,13 +417,26 @@ function buildGithubPlan(_projectRoot: string, variables: Record<string, string>
     '--description',
     variables.PROJECT_DESCRIPTION
   ];
+  const remote = `https://github.com/${repository}.git`;
+  const publishCommands = [
+    ['git', '-C', projectRoot, 'init', '-b', 'main'],
+    ['git', '-C', projectRoot, 'add', '.'],
+    ['git', '-C', projectRoot, '-c', 'user.name=StackForge', '-c', 'user.email=stackforge@example.invalid', 'commit', '-m', 'Initial StackForge scaffold'],
+    ['git', '-C', projectRoot, 'remote', 'add', 'origin', remote],
+    ['git', '-C', projectRoot, 'push', '-u', 'origin', 'main']
+  ];
 
   return {
     requested: Boolean(options.githubCreate),
-    mode: options.githubCreate ? (options.githubExecute ? 'execute' : 'dry-run') : 'noop',
+    mode,
     visibility,
     repository,
-    command
+    command,
+    publish: {
+      mode,
+      remote,
+      commands: publishCommands
+    }
   };
 }
 
@@ -432,8 +464,18 @@ async function runTaskbrief(command: string[]): Promise<void> {
 }
 
 async function runGithubCreate(command: string[]): Promise<void> {
+  await runCommand(command, 'GitHub repository creation');
+}
+
+async function runGitPublish(commands: string[][]): Promise<void> {
+  for (const command of commands) {
+    await runCommand(command, `Git publish step "${command.join(' ')}"`);
+  }
+}
+
+async function runCommand(command: string[], label: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(command[0] ?? 'gh', command.slice(1), { stdio: 'inherit' });
+    const child = spawn(command[0] ?? '', command.slice(1), { stdio: 'inherit' });
 
     child.once('error', reject);
     child.once('exit', (code) => {
@@ -442,7 +484,7 @@ async function runGithubCreate(command: string[]): Promise<void> {
         return;
       }
 
-      reject(new Error(`GitHub repository creation failed with exit code ${code ?? 'unknown'}.`));
+      reject(new Error(`${label} failed with exit code ${code ?? 'unknown'}.`));
     });
   });
 }

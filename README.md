@@ -40,20 +40,20 @@ stackforge init oss-cli demo
 
 ### GitHub repository creation
 
-StackForge never creates a GitHub repository by default. To request GitHub creation, add `--github-create`; the first run is still a dry run for the `gh repo create` command so you can review it safely:
+StackForge never creates a GitHub repository by default. To request GitHub creation, add `--github-create`; the first run is still a dry run for the GitHub and git publish commands so you can review them safely:
 
 ```bash
 pnpm dev init oss-cli my-tool --github-create
 pnpm dev init oss-cli my-tool --github-create --github-visibility public
 ```
 
-After reviewing the printed `github.command`, rerun with `--github-execute` to create the repository through the GitHub CLI:
+After reviewing the printed `github.command` and `github.publish.commands`, rerun with `--github-execute` to create the repository through the GitHub CLI, initialize the generated project as a local git repo, create the initial scaffold commit, add `origin`, and push `main`:
 
 ```bash
 pnpm dev init oss-cli my-tool --github-create --github-execute
 ```
 
-`--github-execute` requires `--github-create` and cannot be combined with `--dry-run`. The default visibility is `private`; use `--github-visibility public` only when you intentionally want a public repository.
+`--github-execute` requires `--github-create` and cannot be combined with `--dry-run`. The default visibility is `private`; use `--github-visibility public` only when you intentionally want a public repository. For safety, git initialization and push only run for a fresh generated project directory, not an existing directory being overwritten with `--force`.
 
 ## Safety model
 
