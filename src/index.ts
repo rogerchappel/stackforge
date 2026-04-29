@@ -417,7 +417,7 @@ function buildGithubPlan(projectRoot: string, variables: Record<string, string>,
     '--description',
     variables.PROJECT_DESCRIPTION
   ];
-  const remote = `https://github.com/${repository}.git`;
+  const remote = `git@github.com:${repository}.git`;
   const publishCommands = [
     ['git', '-C', projectRoot, 'init', '-b', 'main'],
     ['git', '-C', projectRoot, 'add', '.'],
