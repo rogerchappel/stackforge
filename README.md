@@ -71,6 +71,8 @@ StackForge is local-first and review-friendly:
 - `next-app`: Next.js application
 - `python-api`: Python API service
 
+Generated repositories include `scripts/validate.sh` as the default local verification path. It runs the repo's normal local package checks when they exist and only runs `agent-qc ready` when `agent-qc` is installed, so `agent-qc` stays optional.
+
 ## Local planning docs
 
 Use `--prd <path>` and `--tasks <path>` with `stackforge init` to copy local planning inputs into the generated repo as `docs/PRD.md` and `docs/TASKS.md`.

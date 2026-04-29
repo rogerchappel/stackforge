@@ -33,6 +33,7 @@ For a practical setup flow, see
 - `license/`: license text templates.
 - `npm-package/`: optional JavaScript npm package starter files.
 - `readme/`: generated repository README template.
+- `repo-validate/`: local validation script template, including an optional `agent-qc` readiness hook.
 - `release/`: changelog, roadmap, release process, and release checklist
   templates.
 - `security/`: security policy and vulnerability reporting templates.
