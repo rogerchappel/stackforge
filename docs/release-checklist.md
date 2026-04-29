@@ -11,6 +11,18 @@ to the project, but do not skip verification and rollback notes.
 - [ ] Included changes are reviewable and merged.
 - [ ] Deferred changes are tracked separately.
 
+### StackForge V1 gate
+
+For StackForge V1 or release-readiness review, also confirm:
+
+- [ ] `README.md` explains the CLI-first architecture.
+- [ ] The CrewCmd-later boundary is documented and does not hide CLI ownership.
+- [ ] Command examples cover `templates` and `init`, including `--dry-run`.
+- [ ] OpenClaw agent usage expectations are documented.
+- [ ] Safety constraints are documented: local-first behavior, no hidden network
+      calls, no implicit GitHub creation, and no autonomous merge.
+- [ ] `docs/release-readiness.md` matches the current command surface.
+
 ## 2. Changelog
 
 - [ ] `CHANGELOG.md` has an `Unreleased` section.
