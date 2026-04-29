@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { isTemplateKey, listTemplates } from './templates.js';
 
 const program = new Command();
 
@@ -13,13 +14,7 @@ program
   .command('templates')
   .description('List available templates.')
   .action(() => {
-    console.log(JSON.stringify({
-      templates: [
-        { key: 'oss-cli', description: 'Open-source TypeScript CLI package' },
-        { key: 'next-app', description: 'Next.js app scaffold' },
-        { key: 'python-api', description: 'Python API scaffold' }
-      ]
-    }, null, 2));
+    console.log(JSON.stringify({ templates: listTemplates() }, null, 2));
   });
 
 program
@@ -29,6 +24,10 @@ program
   .argument('[name]', 'Project directory/name')
   .option('--dry-run', 'Print planned actions without writing files')
   .action((template: string, name: string | undefined, options: { dryRun?: boolean }) => {
+    if (!isTemplateKey(template)) {
+      throw new Error(`Unknown template: ${template}. Run \`stackforge templates\` to list available templates.`);
+    }
+
     const projectName = name ?? template;
     const mode = options.dryRun ? 'dry-run' : 'write';
     console.log(JSON.stringify({ ok: true, command: 'init', template, projectName, mode }, null, 2));
