@@ -12,7 +12,8 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "check": "tsc --noEmit",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "check:templates": "pnpm build && node scripts/check-template-registry.mjs"
   },
   "dependencies": {
     "commander": "^12.1.0"
