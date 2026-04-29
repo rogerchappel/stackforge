@@ -27,6 +27,8 @@ type InitOptions = {
   force?: boolean;
   prd?: string;
   tasks?: string;
+  taskbrief?: boolean;
+  taskbriefWorkspace?: string;
   var?: string[];
   githubCreate?: boolean;
   githubExecute?: boolean;
@@ -48,6 +50,15 @@ type WritePlanItem = {
   destination: string;
   existed: boolean;
   bytes: number;
+};
+
+type TaskbriefPlan = {
+  requested: boolean;
+  mode: 'noop' | 'dry-run' | 'execute';
+  workspace?: string;
+  input: string;
+  output: string;
+  command: string[];
 };
 
 const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
@@ -79,6 +90,7 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/release/ROADMAP.template.md', destination: 'ROADMAP.md' },
       { source: 'templates/github/pull_request_template.md', destination: '.github/pull_request_template.md' },
       { source: 'templates/github/dependabot.yml', destination: '.github/dependabot.yml' },
+      { source: 'templates/github/workflows/ci.yml', destination: '.github/workflows/ci.yml' },
       { source: 'templates/agents/AGENTS.template.md', destination: 'AGENTS.md' },
       { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
       { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' }
@@ -123,6 +135,8 @@ program
   .option('-f, --force', 'Overwrite existing files')
   .option('--prd <path>', 'Copy a local PRD markdown file into docs/PRD.md')
   .option('--tasks <path>', 'Copy a local tasks markdown file into docs/TASKS.md')
+  .option('--taskbrief', 'Generate docs/TASKS.md from docs/PRD.md with taskbrief after scaffold files are written')
+  .option('--taskbrief-workspace <path>', 'Pass an explicit workspace path through to taskbrief when using --taskbrief')
   .option('--var <KEY=VALUE>', 'Template variable override. Can be repeated.', collectVars, [])
   .option('--github-create', 'Plan a GitHub repository creation with gh. Defaults to dry-run; add --github-execute to run it')
   .option('--github-execute', 'Execute the planned gh repo create command. Requires --github-create and cannot be combined with --dry-run')
@@ -132,9 +146,29 @@ program
       const projectName = name ?? template;
       const projectRoot = path.resolve(process.cwd(), projectName);
       const variables = buildVariables(projectName, options.var ?? []);
+
+      if (options.taskbrief && !options.prd) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: '--taskbrief requires --prd so StackForge has a PRD to convert into docs/TASKS.md.'
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+
+      if (options.taskbrief && options.tasks) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: '--taskbrief cannot be combined with --tasks because both target docs/TASKS.md. Choose one source of tasks.'
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+
       const plan = await buildWritePlan(templateScaffolds[template], projectRoot, variables, options);
       const existing = plan.filter((item) => item.existed);
       const githubPlan = buildGithubPlan(projectRoot, variables, options);
+      const taskbriefPlan = buildTaskbriefPlan(projectRoot, options);
 
       if (options.githubExecute && !options.githubCreate) {
         console.error(JSON.stringify({
@@ -170,6 +204,10 @@ program
           await writeFile(item.destination, item.source, 'utf8');
         }
 
+        if (taskbriefPlan.mode === 'execute') {
+          await runTaskbrief(taskbriefPlan.command);
+        }
+
         if (githubPlan.mode === 'execute') {
           await runGithubCreate(githubPlan.command);
         }
@@ -183,6 +221,7 @@ program
         projectRoot,
         mode: options.dryRun ? 'dry-run' : 'write',
         force: Boolean(options.force),
+        taskbrief: taskbriefPlan,
         github: githubPlan,
         files: plan.map((item) => ({
           path: path.relative(process.cwd(), item.destination),
@@ -319,6 +358,34 @@ function render(content: string, variables: Record<string, string>): string {
   return content.replace(/\{\{([A-Z0-9_]+)\}\}/g, (_match, key: string) => variables[key] ?? '');
 }
 
+function buildTaskbriefPlan(projectRoot: string, options: InitOptions): TaskbriefPlan {
+  const input = path.join(projectRoot, 'docs/PRD.md');
+  const output = path.join(projectRoot, 'docs/TASKS.md');
+  const workspace = options.taskbriefWorkspace ? path.resolve(process.cwd(), options.taskbriefWorkspace) : undefined;
+  const command = [
+    'taskbrief',
+    'parse',
+    input,
+    '--format',
+    'markdown',
+    '--output',
+    output
+  ];
+
+  if (workspace) {
+    command.push('--workspace', workspace);
+  }
+
+  return {
+    requested: Boolean(options.taskbrief),
+    mode: options.taskbrief ? (options.dryRun ? 'dry-run' : 'execute') : 'noop',
+    workspace,
+    input,
+    output,
+    command
+  };
+}
+
 function buildGithubPlan(_projectRoot: string, variables: Record<string, string>, options: InitOptions): GithubPlan {
   const visibility = options.githubVisibility ?? 'private';
   const repository = `${variables.GITHUB_OWNER}/${variables.GITHUB_REPO}`;
@@ -339,6 +406,29 @@ function buildGithubPlan(_projectRoot: string, variables: Record<string, string>
     repository,
     command
   };
+}
+
+async function runTaskbrief(command: string[]): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(command[0] ?? 'taskbrief', command.slice(1), { stdio: 'inherit' });
+
+    child.once('error', (error) => {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        reject(new Error('taskbrief binary was not found on PATH. Install taskbrief or re-run without --taskbrief.'));
+        return;
+      }
+
+      reject(error);
+    });
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`taskbrief failed with exit code ${code ?? 'unknown'} while generating docs/TASKS.md from docs/PRD.md.`));
+    });
+  });
 }
 
 async function runGithubCreate(command: string[]): Promise<void> {
