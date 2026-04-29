@@ -13,7 +13,8 @@
     "dev": "tsx src/index.ts",
     "check": "tsc --noEmit",
     "start": "node dist/index.js",
-    "check:templates": "pnpm build && node scripts/check-template-registry.mjs"
+    "check:templates": "pnpm build && node scripts/check-template-registry.mjs",
+    "smoke:init": "bash scripts/smoke-init.sh"
   },
   "dependencies": {
     "commander": "^12.1.0"
