@@ -15,6 +15,24 @@ pnpm dev templates
 pnpm dev init oss-cli my-tool --dry-run
 ```
 
+
+### GitHub repository creation
+
+StackForge never creates a GitHub repository by default. To request GitHub creation, add `--github-create`; the first run is still a dry run for the `gh repo create` command so you can review it safely:
+
+```bash
+pnpm dev init oss-cli my-tool --github-create
+pnpm dev init oss-cli my-tool --github-create --github-visibility public
+```
+
+After reviewing the printed `github.command`, rerun with `--github-execute` to create the repository through the GitHub CLI:
+
+```bash
+pnpm dev init oss-cli my-tool --github-create --github-execute
+```
+
+`--github-execute` requires `--github-create` and cannot be combined with `--dry-run`. The default visibility is `private`; use `--github-visibility public` only when you intentionally want a public repository.
+
 ## Architecture
 
 - `stackforge` CLI owns deterministic project generation.
