@@ -28,6 +28,37 @@ fi
 grep -q 'docs/PRD.md' dry-run.json
 grep -q 'docs/TASKS.md' dry-run.json
 
+node "$repo_root/dist/index.js" init oss-cli github-dry-run --dry-run --github-create > github-dry-run.json
+[ ! -e github-dry-run ] || { echo "github dry-run created files" >&2; exit 1; }
+grep -q '"publish"' github-dry-run.json
+grep -q '"push"' github-dry-run.json
+grep -q '"origin"' github-dry-run.json
+grep -q '"main"' github-dry-run.json
+
+mock_bin="$tmp_dir/mock-bin"
+mkdir -p "$mock_bin"
+cat <<'EOF' > "$mock_bin/gh"
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'gh %s\n' "$*" >> "$STACKFORGE_MOCK_LOG"
+EOF
+cat <<'EOF' > "$mock_bin/git"
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'git %s\n' "$*" >> "$STACKFORGE_MOCK_LOG"
+EOF
+chmod +x "$mock_bin/gh" "$mock_bin/git"
+STACKFORGE_MOCK_LOG="$tmp_dir/github-publish.log" PATH="$mock_bin:$PATH" node "$repo_root/dist/index.js" init oss-cli github-app --github-create --github-execute --github-visibility public > github-init.json
+test -f github-app/README.md
+grep -q 'gh repo create rogerchappel/github-app --public' "$tmp_dir/github-publish.log"
+grep -q 'git -C .*/github-app init -b main' "$tmp_dir/github-publish.log"
+grep -q 'git -C .*/github-app push -u origin main' "$tmp_dir/github-publish.log"
+if STACKFORGE_MOCK_LOG="$tmp_dir/github-existing.log" PATH="$mock_bin:$PATH" node "$repo_root/dist/index.js" init oss-cli github-app --force --github-create --github-execute > github-existing.json 2> github-existing.err; then
+  echo "github execute unexpectedly published an existing directory" >&2
+  exit 1
+fi
+grep -q 'Refusing to initialize and push git history for an existing project directory' github-existing.err
+
 taskbrief_bin="$tmp_dir/taskbrief"
 cat <<'EOF' > "$taskbrief_bin"
 #!/usr/bin/env bash
