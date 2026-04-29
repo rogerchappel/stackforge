@@ -38,7 +38,8 @@ is_allowed_placeholder_path() {
     docs/copilot.md | \
     docs/npm-publishing.md | \
     docs/repo-customisation.md | \
-    docs/template-variables.md)
+    docs/template-variables.md | \
+    src/index.ts)
       return 0
       ;;
     *)
@@ -102,6 +103,8 @@ templates/npm-package/src
 templates/npm-package/test
 templates/readme
 templates/release
+templates/repo-docs
+templates/repo-validate
 templates/security
 "
 
@@ -145,6 +148,8 @@ templates/release/release-checklist.template.md
 templates/release/release-process.template.md
 templates/security/SECURITY.github-private-reporting.template.md
 templates/security/SECURITY.template.md
+templates/repo-docs/README.md
+templates/repo-validate/validate.sh
 "
 
 printf 'Checking required root files...\n'

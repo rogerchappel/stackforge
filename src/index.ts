@@ -55,6 +55,9 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/contributors/CONTRIBUTING.template.md', destination: 'CONTRIBUTING.md' },
       { source: 'templates/security/SECURITY.template.md', destination: 'SECURITY.md' },
       { source: 'templates/github/pull_request_template.md', destination: '.github/pull_request_template.md' },
+      { source: 'templates/agents/AGENTS.template.md', destination: 'AGENTS.md' },
+      { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
+      { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' },
       { destination: 'package.json', content: nextPackageJsonTemplate() },
       { destination: 'src/app/page.tsx', content: "export default function Home() {\n  return <main>{{PROJECT_NAME}}</main>;\n}\n" },
       { destination: 'src/app/layout.tsx', content: "export default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\">\n      <body>{children}</body>\n    </html>\n  );\n}\n" }
@@ -72,7 +75,10 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/release/CHANGELOG.template.md', destination: 'CHANGELOG.md' },
       { source: 'templates/release/ROADMAP.template.md', destination: 'ROADMAP.md' },
       { source: 'templates/github/pull_request_template.md', destination: '.github/pull_request_template.md' },
-      { source: 'templates/github/dependabot.yml', destination: '.github/dependabot.yml' }
+      { source: 'templates/github/dependabot.yml', destination: '.github/dependabot.yml' },
+      { source: 'templates/agents/AGENTS.template.md', destination: 'AGENTS.md' },
+      { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
+      { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' }
     ]
   },
   'python-api': {
@@ -82,6 +88,9 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/contributors/CONTRIBUTING.template.md', destination: 'CONTRIBUTING.md' },
       { source: 'templates/security/SECURITY.template.md', destination: 'SECURITY.md' },
       { source: 'templates/github/pull_request_template.md', destination: '.github/pull_request_template.md' },
+      { source: 'templates/agents/AGENTS.template.md', destination: 'AGENTS.md' },
+      { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
+      { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' },
       { destination: 'pyproject.toml', content: pythonProjectTemplate() },
       { destination: 'src/{{PACKAGE_MODULE}}/__init__.py', content: "__all__ = ['__version__']\n__version__ = '0.1.0'\n" },
       { destination: 'src/{{PACKAGE_MODULE}}/main.py', content: "from fastapi import FastAPI\n\napp = FastAPI(title=\"{{PROJECT_NAME}}\")\n\n\n@app.get('/health')\ndef health() -> dict[str, str]:\n    return {'status': 'ok'}\n" }
