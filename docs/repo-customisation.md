@@ -22,8 +22,9 @@ the repository in a state that is accurate enough for contributors and agents.
    remaining placeholder.
 8. Run `rg 'template|starter|example|placeholder|TODO'` and remove stale
    template language that does not apply to the generated repository.
-9. Make the first commit as a small identity-only change before adding project
-   code.
+9. Run `bash scripts/validate.sh` after updating the generated repository so the default local checks pass before you open the first pull request.
+10. Make the first commit as a small identity-only change before adding project
+    code.
 
 ## Recommended Order
 

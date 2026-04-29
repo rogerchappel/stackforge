@@ -26,11 +26,13 @@ repository.
 
 ## Verify
 
-Run the primary local check before opening a pull request:
+Run the local validation script before opening a pull request:
 
 ```sh
 {{PRIMARY_VERIFICATION_COMMAND}}
 ```
+
+`scripts/validate.sh` runs the repository's standard local checks when they are defined and will also run `agent-qc ready` when `agent-qc` is installed. Missing `agent-qc` is treated as a skip, not a failure.
 
 ## Contributing
 

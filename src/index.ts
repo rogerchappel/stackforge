@@ -273,7 +273,7 @@ function buildVariables(projectName: string, overrides: string[]): Record<string
     GITHUB_REPO: packageSlug,
     INSTALL_COMMAND: 'pnpm install',
     USAGE_COMMAND: 'pnpm dev',
-    PRIMARY_VERIFICATION_COMMAND: 'pnpm test',
+    PRIMARY_VERIFICATION_COMMAND: 'bash scripts/validate.sh',
     YEAR: String(new Date().getFullYear()),
     LICENSE: 'MIT',
     VULNERABILITY_REPORTING_INSTRUCTIONS: 'Ask maintainers for the private security reporting path before sharing details.',
