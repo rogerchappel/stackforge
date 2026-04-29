@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command, InvalidArgumentError } from 'commander';
+import { spawn } from 'node:child_process';
 import { constants as fsConstants } from 'node:fs';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -24,6 +25,19 @@ type InitOptions = {
   dryRun?: boolean;
   force?: boolean;
   var?: string[];
+  githubCreate?: boolean;
+  githubExecute?: boolean;
+  githubVisibility?: GithubVisibility;
+};
+
+type GithubVisibility = 'public' | 'private';
+
+type GithubPlan = {
+  requested: boolean;
+  mode: 'noop' | 'dry-run' | 'execute';
+  visibility: GithubVisibility;
+  repository: string;
+  command: string[];
 };
 
 type WritePlanItem = {
@@ -96,12 +110,34 @@ program
   .option('--dry-run', 'Print planned actions without writing files')
   .option('-f, --force', 'Overwrite existing files')
   .option('--var <KEY=VALUE>', 'Template variable override. Can be repeated.', collectVars, [])
+  .option('--github-create', 'Plan a GitHub repository creation with gh. Defaults to dry-run; add --github-execute to run it')
+  .option('--github-execute', 'Execute the planned gh repo create command. Requires --github-create and cannot be combined with --dry-run')
+  .option('--github-visibility <public|private>', 'GitHub repository visibility for --github-create', parseGithubVisibility, 'private')
   .action(async (template: TemplateKey, name: string | undefined, options: InitOptions) => {
     const projectName = name ?? template;
     const projectRoot = path.resolve(process.cwd(), projectName);
     const variables = buildVariables(projectName, options.var ?? []);
     const plan = await buildWritePlan(templateScaffolds[template], projectRoot, variables);
     const existing = plan.filter((item) => item.existed);
+    const githubPlan = buildGithubPlan(projectRoot, variables, options);
+
+    if (options.githubExecute && !options.githubCreate) {
+      console.error(JSON.stringify({
+        ok: false,
+        error: '--github-execute requires --github-create so repository creation is always explicit.'
+      }, null, 2));
+      process.exitCode = 1;
+      return;
+    }
+
+    if (options.githubExecute && options.dryRun) {
+      console.error(JSON.stringify({
+        ok: false,
+        error: '--github-execute cannot be combined with --dry-run. Run once without --github-execute to review the gh command first.'
+      }, null, 2));
+      process.exitCode = 1;
+      return;
+    }
 
     if (existing.length > 0 && !options.force && !options.dryRun) {
       console.error(JSON.stringify({
@@ -118,6 +154,10 @@ program
         await mkdir(path.dirname(item.destination), { recursive: true });
         await writeFile(item.destination, item.source, 'utf8');
       }
+
+      if (githubPlan.mode === 'execute') {
+        await runGithubCreate(githubPlan.command);
+      }
     }
 
     console.log(JSON.stringify({
@@ -128,6 +168,7 @@ program
       projectRoot,
       mode: options.dryRun ? 'dry-run' : 'write',
       force: Boolean(options.force),
+      github: githubPlan,
       files: plan.map((item) => ({
         path: path.relative(process.cwd(), item.destination),
         existed: item.existed,
@@ -148,6 +189,14 @@ function parseTemplateKey(value: string): TemplateKey {
 
 function collectVars(value: string, previous: string[]): string[] {
   return [...previous, value];
+}
+
+function parseGithubVisibility(value: string): GithubVisibility {
+  if (value === 'public' || value === 'private') {
+    return value;
+  }
+
+  throw new InvalidArgumentError(`Invalid GitHub visibility "${value}". Use "public" or "private".`);
 }
 
 function buildVariables(projectName: string, overrides: string[]): Record<string, string> {
@@ -211,6 +260,44 @@ async function buildWritePlan(
 
 function render(content: string, variables: Record<string, string>): string {
   return content.replace(/\{\{([A-Z0-9_]+)\}\}/g, (_match, key: string) => variables[key] ?? '');
+}
+
+function buildGithubPlan(_projectRoot: string, variables: Record<string, string>, options: InitOptions): GithubPlan {
+  const visibility = options.githubVisibility ?? 'private';
+  const repository = `${variables.GITHUB_OWNER}/${variables.GITHUB_REPO}`;
+  const command = [
+    'gh',
+    'repo',
+    'create',
+    repository,
+    `--${visibility}`,
+    '--description',
+    variables.PROJECT_DESCRIPTION
+  ];
+
+  return {
+    requested: Boolean(options.githubCreate),
+    mode: options.githubCreate ? (options.githubExecute ? 'execute' : 'dry-run') : 'noop',
+    visibility,
+    repository,
+    command
+  };
+}
+
+async function runGithubCreate(command: string[]): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(command[0] ?? 'gh', command.slice(1), { stdio: 'inherit' });
+
+    child.once('error', reject);
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`GitHub repository creation failed with exit code ${code ?? 'unknown'}.`));
+    });
+  });
 }
 
 async function pathExists(filePath: string): Promise<boolean> {
