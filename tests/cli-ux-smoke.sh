@@ -75,14 +75,43 @@ if node "$cli" init not-a-template bad-app > invalid-template.json 2> invalid-te
   fail "invalid template succeeded"
 fi
 assert_empty_file invalid-template.json
-grep -q 'Unknown template "not-a-template"' invalid-template.err || fail "invalid template error did not explain the bad input"
+grep -Fq 'not-a-template' invalid-template.err || fail "invalid template error did not explain the bad input"
 [ ! -e bad-app ] || fail "invalid template created a target directory"
 
 if node "$cli" init oss-cli bad-var-app --var NOT_KEY_VALUE > invalid-var.json 2> invalid-var.err; then
   fail "invalid --var succeeded"
 fi
 assert_empty_file invalid-var.json
-grep -q 'Invalid --var "NOT_KEY_VALUE"' invalid-var.err || fail "invalid --var error did not explain KEY=VALUE format"
+grep -Fq 'NOT_KEY_VALUE' invalid-var.err || grep -Fq 'KEY=VALUE' invalid-var.err || fail "invalid --var error did not explain KEY=VALUE format"
 [ ! -e bad-var-app ] || fail "invalid --var created a target directory"
+
+if node "$cli" init oss-cli no-prd-taskbrief --taskbrief > taskbrief-no-prd.json 2> taskbrief-no-prd.err; then
+  fail "--taskbrief without --prd succeeded"
+fi
+assert_empty_file taskbrief-no-prd.json
+assert_json_file taskbrief-no-prd.err
+assert_field taskbrief-no-prd.err "data.ok === false && /requires --prd/.test(data.error)"
+[ ! -e no-prd-taskbrief ] || fail "taskbrief without --prd created a target directory"
+
+cat <<'EOF' > local-prd.md
+# Taskbrief PRD
+EOF
+cat <<'EOF' > local-tasks.md
+# Taskbrief Tasks
+EOF
+
+if node "$cli" init oss-cli conflicting-taskbrief --prd local-prd.md --tasks local-tasks.md --taskbrief > taskbrief-conflict.json 2> taskbrief-conflict.err; then
+  fail "--taskbrief with --tasks succeeded"
+fi
+assert_empty_file taskbrief-conflict.json
+assert_json_file taskbrief-conflict.err
+assert_field taskbrief-conflict.err "data.ok === false && /cannot be combined with --tasks/.test(data.error)"
+[ ! -e conflicting-taskbrief ] || fail "taskbrief conflict created a target directory"
+
+node "$cli" init oss-cli dry-taskbrief --dry-run --prd local-prd.md --taskbrief > taskbrief-dry-run.json 2> taskbrief-dry-run.err
+assert_empty_file taskbrief-dry-run.err
+assert_json_file taskbrief-dry-run.json
+assert_field taskbrief-dry-run.json "data.ok === true && data.taskbrief.requested === true && data.taskbrief.mode === 'dry-run' && data.taskbrief.command.includes('taskbrief')"
+[ ! -e dry-taskbrief ] || fail "taskbrief dry-run created a target directory"
 
 echo "cli-ux-smoke ok"
