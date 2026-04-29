@@ -9,18 +9,35 @@ cd "$repo_root"
 pnpm build >/dev/null
 
 cd "$tmp_dir"
-node "$repo_root/dist/index.js" init oss-cli smoke-app --dry-run > dry-run.json
+cat <<'EOF' > local-prd.md
+# Local PRD
+
+This is a copied PRD.
+EOF
+cat <<'EOF' > local-tasks.md
+# Local Tasks
+
+- [ ] Ship it
+EOF
+
+node "$repo_root/dist/index.js" init oss-cli smoke-app --dry-run --prd local-prd.md --tasks local-tasks.md > dry-run.json
 if [ -e smoke-app ]; then
   echo "dry-run created files" >&2
   exit 1
 fi
+grep -q 'docs/PRD.md' dry-run.json
+grep -q 'docs/TASKS.md' dry-run.json
 
-node "$repo_root/dist/index.js" init oss-cli smoke-app --var AUTHOR_NAME="Smoke Tester" > init.json
+node "$repo_root/dist/index.js" init oss-cli smoke-app --var AUTHOR_NAME="Smoke Tester" --prd local-prd.md --tasks local-tasks.md > init.json
 test -f smoke-app/README.md
 test -f smoke-app/package.json
+test -f smoke-app/docs/PRD.md
+test -f smoke-app/docs/TASKS.md
 grep -q "# smoke-app" smoke-app/README.md
 grep -q "Smoke Tester" smoke-app/package.json
-node "$repo_root/dist/index.js" init oss-cli smoke-app --dry-run > dry-run-existing.json
+grep -q "This is a copied PRD" smoke-app/docs/PRD.md
+grep -q -- "- \[ \] Ship it" smoke-app/docs/TASKS.md
+node "$repo_root/dist/index.js" init oss-cli smoke-app --dry-run --prd local-prd.md --tasks local-tasks.md > dry-run-existing.json
 
 if node "$repo_root/dist/index.js" init oss-cli smoke-app > overwrite.json 2> overwrite.err; then
   echo "init overwrote without --force" >&2

@@ -13,6 +13,7 @@ pnpm install
 pnpm build
 pnpm dev templates
 pnpm dev init oss-cli my-tool --dry-run
+pnpm dev init oss-cli my-tool --prd ./docs/PRD.md --tasks ./docs/TASKS.md
 ```
 
 
@@ -44,6 +45,10 @@ pnpm dev init oss-cli my-tool --github-create --github-execute
 - `oss-cli`: TypeScript CLI package
 - `next-app`: Next.js application
 - `python-api`: Python API service
+
+## Local planning docs
+
+Use `--prd <path>` and `--tasks <path>` with `stackforge init` to copy local planning inputs into the generated repo as `docs/PRD.md` and `docs/TASKS.md`.
 
 ## PRD
 

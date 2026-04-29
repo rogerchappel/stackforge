@@ -14,6 +14,7 @@ type TemplateFile = {
   source?: string;
   destination: string;
   content?: string;
+  render?: boolean;
 };
 
 type TemplateScaffold = {
@@ -24,6 +25,8 @@ type TemplateScaffold = {
 type InitOptions = {
   dryRun?: boolean;
   force?: boolean;
+  prd?: string;
+  tasks?: string;
   var?: string[];
   githubCreate?: boolean;
   githubExecute?: boolean;
@@ -118,72 +121,82 @@ program
   .argument('[name]', 'Project directory/name')
   .option('--dry-run', 'Print planned actions without writing files')
   .option('-f, --force', 'Overwrite existing files')
+  .option('--prd <path>', 'Copy a local PRD markdown file into docs/PRD.md')
+  .option('--tasks <path>', 'Copy a local tasks markdown file into docs/TASKS.md')
   .option('--var <KEY=VALUE>', 'Template variable override. Can be repeated.', collectVars, [])
   .option('--github-create', 'Plan a GitHub repository creation with gh. Defaults to dry-run; add --github-execute to run it')
   .option('--github-execute', 'Execute the planned gh repo create command. Requires --github-create and cannot be combined with --dry-run')
   .option('--github-visibility <public|private>', 'GitHub repository visibility for --github-create', parseGithubVisibility, 'private')
   .action(async (template: TemplateKey, name: string | undefined, options: InitOptions) => {
-    const projectName = name ?? template;
-    const projectRoot = path.resolve(process.cwd(), projectName);
-    const variables = buildVariables(projectName, options.var ?? []);
-    const plan = await buildWritePlan(templateScaffolds[template], projectRoot, variables);
-    const existing = plan.filter((item) => item.existed);
-    const githubPlan = buildGithubPlan(projectRoot, variables, options);
+    try {
+      const projectName = name ?? template;
+      const projectRoot = path.resolve(process.cwd(), projectName);
+      const variables = buildVariables(projectName, options.var ?? []);
+      const plan = await buildWritePlan(templateScaffolds[template], projectRoot, variables, options);
+      const existing = plan.filter((item) => item.existed);
+      const githubPlan = buildGithubPlan(projectRoot, variables, options);
 
-    if (options.githubExecute && !options.githubCreate) {
-      console.error(JSON.stringify({
-        ok: false,
-        error: '--github-execute requires --github-create so repository creation is always explicit.'
-      }, null, 2));
-      process.exitCode = 1;
-      return;
-    }
-
-    if (options.githubExecute && options.dryRun) {
-      console.error(JSON.stringify({
-        ok: false,
-        error: '--github-execute cannot be combined with --dry-run. Run once without --github-execute to review the gh command first.'
-      }, null, 2));
-      process.exitCode = 1;
-      return;
-    }
-
-    if (existing.length > 0 && !options.force && !options.dryRun) {
-      console.error(JSON.stringify({
-        ok: false,
-        error: 'Refusing to overwrite existing files. Re-run with --force to overwrite.',
-        files: existing.map((item) => path.relative(process.cwd(), item.destination))
-      }, null, 2));
-      process.exitCode = 1;
-      return;
-    }
-
-    if (!options.dryRun) {
-      for (const item of plan) {
-        await mkdir(path.dirname(item.destination), { recursive: true });
-        await writeFile(item.destination, item.source, 'utf8');
+      if (options.githubExecute && !options.githubCreate) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: '--github-execute requires --github-create so repository creation is always explicit.'
+        }, null, 2));
+        process.exitCode = 1;
+        return;
       }
 
-      if (githubPlan.mode === 'execute') {
-        await runGithubCreate(githubPlan.command);
+      if (options.githubExecute && options.dryRun) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: '--github-execute cannot be combined with --dry-run. Run once without --github-execute to review the gh command first.'
+        }, null, 2));
+        process.exitCode = 1;
+        return;
       }
-    }
 
-    console.log(JSON.stringify({
-      ok: true,
-      command: 'init',
-      template,
-      projectName,
-      projectRoot,
-      mode: options.dryRun ? 'dry-run' : 'write',
-      force: Boolean(options.force),
-      github: githubPlan,
-      files: plan.map((item) => ({
-        path: path.relative(process.cwd(), item.destination),
-        existed: item.existed,
-        bytes: item.bytes
-      }))
-    }, null, 2));
+      if (existing.length > 0 && !options.force && !options.dryRun) {
+        console.error(JSON.stringify({
+          ok: false,
+          error: 'Refusing to overwrite existing files. Re-run with --force to overwrite.',
+          files: existing.map((item) => path.relative(process.cwd(), item.destination))
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+
+      if (!options.dryRun) {
+        for (const item of plan) {
+          await mkdir(path.dirname(item.destination), { recursive: true });
+          await writeFile(item.destination, item.source, 'utf8');
+        }
+
+        if (githubPlan.mode === 'execute') {
+          await runGithubCreate(githubPlan.command);
+        }
+      }
+
+      console.log(JSON.stringify({
+        ok: true,
+        command: 'init',
+        template,
+        projectName,
+        projectRoot,
+        mode: options.dryRun ? 'dry-run' : 'write',
+        force: Boolean(options.force),
+        github: githubPlan,
+        files: plan.map((item) => ({
+          path: path.relative(process.cwd(), item.destination),
+          existed: item.existed,
+          bytes: item.bytes
+        }))
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({
+        ok: false,
+        error: error instanceof Error ? error.message : 'Unknown init error'
+      }, null, 2));
+      process.exitCode = 1;
+    }
   });
 
 await program.parseAsync(process.argv);
@@ -246,13 +259,15 @@ function buildVariables(projectName: string, overrides: string[]): Record<string
 async function buildWritePlan(
   template: TemplateScaffold,
   projectRoot: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
+  options: InitOptions
 ): Promise<WritePlanItem[]> {
   const items: WritePlanItem[] = [];
+  const files = [...template.files, ...await buildLocalInputFiles(options)];
 
-  for (const file of template.files) {
+  for (const file of files) {
     const rawContent = file.content ?? await readFile(path.join(sourceRoot, file.source ?? ''), 'utf8');
-    const renderedContent = render(rawContent, variables);
+    const renderedContent = file.render === false ? rawContent : render(rawContent, variables);
     const renderedDestination = render(file.destination, variables);
     const destination = path.join(projectRoot, renderedDestination);
 
@@ -265,6 +280,39 @@ async function buildWritePlan(
   }
 
   return items;
+}
+
+async function buildLocalInputFiles(options: InitOptions): Promise<TemplateFile[]> {
+  const files: TemplateFile[] = [];
+
+  if (options.prd) {
+    files.push({
+      destination: 'docs/PRD.md',
+      content: await readLocalInputFile(options.prd, 'PRD'),
+      render: false
+    });
+  }
+
+  if (options.tasks) {
+    files.push({
+      destination: 'docs/TASKS.md',
+      content: await readLocalInputFile(options.tasks, 'tasks'),
+      render: false
+    });
+  }
+
+  return files;
+}
+
+async function readLocalInputFile(inputPath: string, label: string): Promise<string> {
+  const resolvedPath = path.resolve(process.cwd(), inputPath);
+
+  try {
+    return await readFile(resolvedPath, 'utf8');
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'Unknown file read error';
+    throw new Error(`Unable to read ${label} input file at ${resolvedPath}: ${detail}`);
+  }
 }
 
 function render(content: string, variables: Record<string, string>): string {
