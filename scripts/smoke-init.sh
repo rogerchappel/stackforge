@@ -145,7 +145,9 @@ test -f brief-app/docs/TASKS.md
 grep -q 'Generated Tasks' brief-app/docs/TASKS.md
 grep -q 'workspace=' brief-app/docs/TASKS.md
 
-if PATH="/opt/homebrew/bin:/usr/bin:/bin" node "$repo_root/dist/index.js" init oss-cli missing-taskbrief-app --prd local-prd.md --taskbrief > missing-taskbrief.json 2> missing-taskbrief.err; then
+node_bin="$(command -v node)"
+node_dir="$(dirname "$node_bin")"
+if PATH="$node_dir:/usr/bin:/bin" "$node_bin" "$repo_root/dist/index.js" init oss-cli missing-taskbrief-app --prd local-prd.md --taskbrief > missing-taskbrief.json 2> missing-taskbrief.err; then
   echo "taskbrief unexpectedly succeeded without binary" >&2
   exit 1
 fi
