@@ -105,11 +105,18 @@ test -f smoke-app/docs/PRD.md
 test -f smoke-app/docs/TASKS.md
 test -f smoke-app/.github/dependabot.yml
 test -f smoke-app/.github/workflows/ci.yml
+test -f smoke-app/.github/workflows/release-dry-run.yml
+test -f smoke-app/.github/workflows/release.yml
+test -f smoke-app/releasebox.config.json
 test -f smoke-app/scripts/validate.sh
 grep -q "# smoke-app" smoke-app/README.md
 grep -q "bash scripts/validate.sh" smoke-app/README.md
 grep -q "agent-qc" smoke-app/README.md
 grep -q "Smoke Tester" smoke-app/package.json
+grep -q "release:check" smoke-app/package.json
+grep -q '"publishNpm": false' smoke-app/releasebox.config.json
+grep -q "ReleaseBox readiness check" smoke-app/.github/workflows/release-dry-run.yml
+grep -q "ReleaseBox readiness check" smoke-app/.github/workflows/release.yml
 grep -q "This is a copied PRD" smoke-app/docs/PRD.md
 grep -q -- "- \[ \] Ship it" smoke-app/docs/TASKS.md
 (
@@ -118,6 +125,7 @@ grep -q -- "- \[ \] Ship it" smoke-app/docs/TASKS.md
 )
 grep -q "agent-qc not installed; skipping optional agent check" validate-without-agent-qc.log
 grep -q "PASS: package script: test" validate-without-agent-qc.log
+grep -q "PASS: package script: release:check" validate-without-agent-qc.log
 cat <<'EOF' > "$tmp_dir/agent-qc"
 #!/usr/bin/env bash
 set -euo pipefail

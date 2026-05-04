@@ -71,7 +71,9 @@ StackForge is local-first and review-friendly:
 - `next-app`: Next.js application
 - `python-api`: Python API service
 
-Generated repositories include `scripts/validate.sh` as the default local verification path. It runs the repo's normal local package checks when they exist and only runs `agent-qc ready` when `agent-qc` is installed, so `agent-qc` stays optional.
+Generated repositories include `scripts/validate.sh` as the default local verification path. It runs the repo's normal local package checks when they exist, including `release:check`, and only runs `agent-qc ready` when `agent-qc` is installed, so `agent-qc` stays optional.
+
+`oss-cli` projects also include ReleaseBox by default: `releasebox.config.json`, reviewed/tag-gated GitHub release workflows, and package smoke scripts. The generated release path creates GitHub Releases with attached tarballs while leaving npm and Homebrew publishing disabled until explicitly enabled.
 
 ## Local planning docs
 
