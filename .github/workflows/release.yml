@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  RELEASEBOX_REF: v0.1.0
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install ReleaseBox
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "$RELEASEBOX_REF" https://github.com/rogerchappel/releasebox.git /tmp/releasebox
+          npm --prefix /tmp/releasebox ci
+          npm --prefix /tmp/releasebox run build
+      - name: ReleaseBox readiness check
+        run: node /tmp/releasebox/bin/releasebox.js check .
+      - name: Run release checks
+        run: pnpm run release:check
+      - name: Build package
+        run: npm pack
+      - name: Generate release notes
+        run: node /tmp/releasebox/bin/releasebox.js notes . > RELEASE_NOTES.md
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --notes-file RELEASE_NOTES.md *.tgz

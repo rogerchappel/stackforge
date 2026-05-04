@@ -14,7 +14,10 @@
     "check": "tsc --noEmit",
     "start": "node dist/index.js",
     "check:templates": "pnpm build && node scripts/check-template-registry.mjs",
-    "smoke:init": "bash scripts/smoke-init.sh"
+    "smoke:init": "bash scripts/smoke-init.sh",
+    "release:check": "pnpm run build && pnpm test && pnpm run smoke && npm pack --dry-run",
+    "test": "pnpm run build && node scripts/check-template-registry.mjs",
+    "smoke": "pnpm run smoke:init"
   },
   "dependencies": {
     "commander": "^12.1.0"
