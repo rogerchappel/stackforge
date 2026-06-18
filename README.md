@@ -98,6 +98,9 @@ Rules:
 
 ## Release readiness docs
 
+- `pnpm run release:check` runs build, tests, smoke, and package smoke.
+- `pnpm run package:smoke` runs `npm pack --dry-run` against the publish surface.
+
 - [Release readiness guide](docs/release-readiness.md)
 - [Release checklist](docs/release-checklist.md)
 - [Release process](docs/release-process.md)
