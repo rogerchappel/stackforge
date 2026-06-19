@@ -12,10 +12,11 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "check": "tsc --noEmit",
+    "docs:check": "node scripts/check-docs.mjs",
     "start": "node dist/index.js",
     "check:templates": "pnpm build && node scripts/check-template-registry.mjs",
     "smoke:init": "bash scripts/smoke-init.sh",
-    "release:check": "pnpm run build && pnpm test && pnpm run smoke && pnpm run package:smoke",
+    "release:check": "pnpm run docs:check && pnpm run build && pnpm test && pnpm run smoke && pnpm run package:smoke",
     "test": "pnpm run build && node scripts/check-template-registry.mjs",
     "smoke": "pnpm run smoke:init",
     "package:smoke": "npm pack --dry-run"
