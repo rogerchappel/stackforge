@@ -27,6 +27,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+
       - name: Validate docs directory
         run: |
           set -euo pipefail
@@ -45,12 +56,9 @@ jobs:
             test -s "$file"
           done < markdown-files.txt
 
-      - name: Print docs customization TODO
+      - name: Run docs release-readiness check
         run: |
           set -euo pipefail
 
-          if [ -f package.json ]; then
-            echo "Add docs build verification here when the repository has a docs toolchain."
-          else
-            echo "No package.json found; docs workflow is limited to markdown hygiene."
-          fi
+          pnpm install --frozen-lockfile
+          pnpm run docs:check
