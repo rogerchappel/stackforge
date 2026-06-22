@@ -19,7 +19,7 @@
     "release:check": "pnpm run docs:check && pnpm run build && pnpm test && pnpm run smoke && pnpm run package:smoke",
     "test": "pnpm run build && node scripts/check-template-registry.mjs",
     "smoke": "pnpm run smoke:init",
-    "package:smoke": "npm pack --dry-run"
+    "package:smoke": "pnpm run build && node scripts/package-smoke.mjs"
   },
   "dependencies": {
     "commander": "^12.1.0"
@@ -36,6 +36,7 @@
     "type": "git",
     "url": "git+https://github.com/rogerchappel/stackforge.git"
   },
+  "license": "MIT",
   "files": [
     "dist",
     "src",
