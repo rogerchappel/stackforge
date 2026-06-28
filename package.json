@@ -36,6 +36,10 @@
     "type": "git",
     "url": "git+https://github.com/rogerchappel/stackforge.git"
   },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/stackforge/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/stackforge#readme",
   "license": "MIT",
   "files": [
     "dist",
@@ -43,7 +47,10 @@
     "templates",
     "scripts",
     "docs",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ]
 }
