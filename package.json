@@ -52,5 +52,12 @@
     "README.md",
     "LICENSE",
     "SECURITY.md"
+  ],
+  "keywords": [
+    "scaffolding",
+    "cli",
+    "templates",
+    "agent-friendly",
+    "typescript"
   ]
 }
