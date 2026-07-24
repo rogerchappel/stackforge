@@ -69,6 +69,11 @@ uses generated release notes and maintainers have reviewed them.
 
 Choose the smallest verification that gives confidence for the release:
 
+- Use Node.js 22 and the exact pnpm version in `package.json#packageManager`;
+  Corepack and CI workflows use this pin rather than a floating pnpm major.
+- Run `CI=true corepack pnpm install --frozen-lockfile` from a clean checkout.
+- Run `pnpm run release:check`, which also verifies the pnpm pin, required
+  esbuild build-script policy, and workflow version alignment.
 - Documentation-only release: markdown review, link check if available, and
   spell or formatting checks when configured.
 - Library or package release: targeted tests, typecheck, lint, build, and

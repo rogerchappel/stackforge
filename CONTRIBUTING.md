@@ -71,6 +71,15 @@ Keep the review pack factual. It should say what changed, how it was verified, w
 
 Every contribution needs verification appropriate to the change.
 
+Use Node.js 22 and the exact pnpm version declared by `packageManager` in
+`package.json`. Enable Corepack, then install dependencies non-interactively:
+
+```sh
+corepack enable
+CI=true corepack pnpm install --frozen-lockfile
+pnpm run release:check
+```
+
 Use the smallest relevant verification first:
 
 - Documentation-only changes: review the rendered Markdown or inspect the diff.
