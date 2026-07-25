@@ -80,6 +80,7 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
       { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' },
       { destination: 'package.json', content: nextPackageJsonTemplate() },
+      { destination: 'eslint.config.mjs', content: nextEslintConfigTemplate() },
       { destination: 'src/app/page.tsx', content: "export default function Home() {\n  return <main>{{PROJECT_NAME}}</main>;\n}\n" },
       { destination: 'src/app/layout.tsx', content: "export default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\">\n      <body>{children}</body>\n    </html>\n  );\n}\n" }
     ]
@@ -518,7 +519,7 @@ function nextPackageJsonTemplate(): string {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "next": "latest",
@@ -528,9 +529,22 @@ function nextPackageJsonTemplate(): string {
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
     "typescript": "latest"
   }
 }
+`;
+}
+
+function nextEslintConfigTemplate(): string {
+  return `import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+
+export default defineConfig([
+  ...nextVitals,
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"])
+]);
 `;
 }
 
