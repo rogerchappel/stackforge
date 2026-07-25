@@ -172,5 +172,12 @@ node "$repo_root/dist/index.js" init python-api py-api > py.json
 test -f py-api/src/py_api/main.py
 node "$repo_root/dist/index.js" init next-app web-app > next.json
 test -f web-app/src/app/page.tsx
+test -f web-app/eslint.config.mjs
+(
+  cd web-app
+  npm install
+  npm run lint
+  bash scripts/validate.sh
+)
 
 echo "smoke-init ok"
