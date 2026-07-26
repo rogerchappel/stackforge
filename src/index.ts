@@ -80,6 +80,7 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/repo-docs/README.md', destination: 'docs/README.md' },
       { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' },
       { destination: 'package.json', content: nextPackageJsonTemplate() },
+      { source: 'templates/next-app/package-lock.json', destination: 'package-lock.json', render: true },
       { destination: 'eslint.config.mjs', content: nextEslintConfigTemplate() },
       { destination: 'src/app/page.tsx', content: "export default function Home() {\n  return <main>{{PROJECT_NAME}}</main>;\n}\n" },
       { destination: 'src/app/layout.tsx', content: "export default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\">\n      <body>{children}</body>\n    </html>\n  );\n}\n" }
@@ -519,19 +520,25 @@ function nextPackageJsonTemplate(): string {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "next": "16.2.12",
+    "react": "19.1.9",
+    "react-dom": "19.1.9"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "eslint": "latest",
-    "eslint-config-next": "latest",
-    "typescript": "latest"
+    "@types/node": "22.20.1",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.2.12",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
   }
 }
 `;
