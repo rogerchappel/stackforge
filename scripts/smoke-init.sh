@@ -153,9 +153,14 @@ test -f brief-app/docs/TASKS.md
 grep -q 'Generated Tasks' brief-app/docs/TASKS.md
 grep -q 'workspace=' brief-app/docs/TASKS.md
 
-node_bin="$(command -v node)"
-node_dir="$(dirname "$node_bin")"
-if PATH="$node_dir:/usr/bin:/bin" "$node_bin" "$repo_root/dist/index.js" init oss-cli missing-taskbrief-app --prd local-prd.md --taskbrief > missing-taskbrief.json 2> missing-taskbrief.err; then
+missing_taskbrief_bin="$tmp_dir/missing-taskbrief-bin"
+mkdir -p "$missing_taskbrief_bin"
+ln -s "$(command -v node)" "$missing_taskbrief_bin/node"
+if PATH="$missing_taskbrief_bin" command -v taskbrief >/dev/null; then
+  echo "taskbrief unexpectedly resolved in isolated PATH" >&2
+  exit 1
+fi
+if PATH="$missing_taskbrief_bin" "$missing_taskbrief_bin/node" "$repo_root/dist/index.js" init oss-cli missing-taskbrief-app --prd local-prd.md --taskbrief > missing-taskbrief.json 2> missing-taskbrief.err; then
   echo "taskbrief unexpectedly succeeded without binary" >&2
   exit 1
 fi
