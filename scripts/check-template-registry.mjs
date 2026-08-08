@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { listTemplates, TEMPLATE_KEYS, TEMPLATE_REGISTRY } from '../dist/templates.js';
 
 const expectedKeys = ['next-app', 'oss-cli', 'python-api'];
@@ -34,6 +35,22 @@ const cliOutput = execFileSync(process.execPath, ['dist/index.js', 'templates'],
 const parsed = JSON.parse(cliOutput);
 if (JSON.stringify(parsed.templates) !== JSON.stringify(templates)) {
   throw new Error('CLI templates output does not match typed registry');
+}
+
+const nextAppLock = JSON.parse(readFileSync(new URL('../templates/next-app/package-lock.json', import.meta.url), 'utf8'));
+const nanoid = nextAppLock.packages?.['node_modules/nanoid'];
+if (!nanoid?.version) {
+  throw new Error('Next.js template lockfile is missing nanoid');
+}
+
+const minimumNanoidVersion = [3, 3, 17];
+const nanoidVersion = nanoid.version.split('.').map(Number);
+const firstDifference = nanoidVersion.findIndex((part, index) => part !== minimumNanoidVersion[index]);
+const nanoidIsSupported = nanoidVersion.length === 3
+  && nanoidVersion.every(Number.isInteger)
+  && (firstDifference === -1 || nanoidVersion[firstDifference] > minimumNanoidVersion[firstDifference]);
+if (!nanoidIsSupported) {
+  throw new Error(`Next.js template requires nanoid >=3.3.17, got ${nanoid.version}`);
 }
 
 console.log('template registry check passed');

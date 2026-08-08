@@ -27,3 +27,13 @@ After a generated repository adds `package.json`, extend `.github/dependabot.yml
 Run the project's smallest relevant verification before merging dependency
 updates. For Node projects, that usually means lint, tests, typecheck, and build
 when those scripts exist.
+
+## Refreshing the Next.js template lockfile
+
+The `next-app` template keeps its generated npm lockfile in
+`templates/next-app/package-lock.json`. Refresh a transitive package with
+`npm update <package> --package-lock-only --ignore-scripts` inside a freshly
+generated `next-app`, then copy the resulting lockfile back into the template.
+Run `pnpm test` to check the repository's deterministic lockfile invariants and
+`pnpm run release:check` to exercise the generated app's clean install, lint,
+production build, audit, and validation gates.
