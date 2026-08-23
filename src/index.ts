@@ -81,6 +81,9 @@ const templateScaffolds: Record<TemplateKey, TemplateScaffold> = {
       { source: 'templates/repo-validate/validate.sh', destination: 'scripts/validate.sh' },
       { destination: 'package.json', content: nextPackageJsonTemplate() },
       { source: 'templates/next-app/package-lock.json', destination: 'package-lock.json', render: true },
+      { destination: '.gitignore', content: nextGitignoreTemplate() },
+      { destination: 'next-env.d.ts', content: nextEnvironmentDeclarationTemplate() },
+      { destination: 'tsconfig.json', content: nextTypeScriptConfigTemplate() },
       { destination: 'eslint.config.mjs', content: nextEslintConfigTemplate() },
       { destination: 'src/app/page.tsx', content: "export default function Home() {\n  return <main>{{PROJECT_NAME}}</main>;\n}\n" },
       { destination: 'src/app/layout.tsx', content: "export default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\">\n      <body>{children}</body>\n    </html>\n  );\n}\n" }
@@ -552,6 +555,48 @@ export default defineConfig([
   ...nextVitals,
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"])
 ]);
+`;
+}
+
+function nextGitignoreTemplate(): string {
+  return `node_modules/
+.next/
+out/
+build/
+`;
+}
+
+function nextEnvironmentDeclarationTemplate(): string {
+  return `/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+`;
+}
+
+function nextTypeScriptConfigTemplate(): string {
+  return `{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }]
+  },
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
 `;
 }
 
