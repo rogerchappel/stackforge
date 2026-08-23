@@ -179,6 +179,9 @@ node "$repo_root/dist/index.js" init next-app web-app > next.json
 test -f web-app/src/app/page.tsx
 test -f web-app/eslint.config.mjs
 test -f web-app/package-lock.json
+test -f web-app/.gitignore
+test -f web-app/next-env.d.ts
+test -f web-app/tsconfig.json
 node -e '
   const pkg = require("./web-app/package.json");
   const expected = {
@@ -201,11 +204,19 @@ node -e '
 '
 (
   cd web-app
+  git init -q
+  git add .
+  git -c user.name="StackForge Smoke" -c user.email="smoke@example.invalid" commit -qm "test: capture generated scaffold"
   npm ci --ignore-scripts
   npm run lint
   npm run build
   npm run audit
   bash scripts/validate.sh
+  test -z "$(git status --porcelain)" || {
+    echo "next-app verification modified generated scaffold files" >&2
+    git status --short >&2
+    exit 1
+  }
 )
 
 echo "smoke-init ok"
