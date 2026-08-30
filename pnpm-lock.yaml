@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       commander:
-        specifier: ^12.1.0
-        version: 12.1.0
+        specifier: ^14.0.3
+        version: 14.0.3
     devDependencies:
       '@types/node':
         specifier: ^22.10.2
@@ -183,9 +183,9 @@ packages:
   '@types/node@22.19.17':
     resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
 
-  commander@12.1.0:
-    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
-    engines: {node: '>=18'}
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
 
   esbuild@0.27.7:
     resolution: {integrity: sha512-IxpibTjyVnmrIQo5aqNpCgoACA/dTKLTlhMHihVHhdkxKyPO1uBBthumT0rdHmcsk9uMonIWS0m4FljWzILh3w==}
@@ -300,7 +300,7 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  commander@12.1.0: {}
+  commander@14.0.3: {}
 
   esbuild@0.27.7:
     optionalDependencies:
