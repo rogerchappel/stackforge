@@ -11,6 +11,34 @@ permissions:
   contents: read
 
 jobs:
+  node-compatibility:
+    name: Node ${{ matrix.node-version }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20', '22']
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify build, templates, and CLI behavior
+        run: pnpm run build && pnpm test && bash tests/cli-ux-smoke.sh
+
   repository-hygiene:
     name: Repository hygiene
     runs-on: ubuntu-latest

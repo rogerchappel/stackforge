@@ -44,6 +44,13 @@ assert_empty_file templates.err
 assert_json_file templates.json
 assert_field templates.json "Array.isArray(data.templates) && data.templates.some((template) => template.key === 'oss-cli')"
 
+if node "$cli" templates --not-an-option > invalid-option.out 2> invalid-option.err; then
+  fail "unknown option succeeded"
+fi
+assert_empty_file invalid-option.out
+grep -Fq "unknown option '--not-an-option'" invalid-option.err \
+  || fail "unknown option error did not identify the rejected option"
+
 node "$cli" init oss-cli smoke-app --dry-run > dry-run.json 2> dry-run.err
 assert_empty_file dry-run.err
 assert_json_file dry-run.json

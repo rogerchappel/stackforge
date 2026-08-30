@@ -24,7 +24,7 @@
     "package:smoke": "pnpm run build && node scripts/package-smoke.mjs"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^14.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
