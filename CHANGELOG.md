@@ -19,6 +19,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Changed
 
+- Upgraded Commander to 14.0.3, the newest release compatible with the Node.js
+  20 runtime floor, and added Node.js 20 and 22 CLI compatibility coverage.
 - Aligned template terminology, placeholder documentation, and current V1
   surface area across docs, templates, and workflows.
 - Expanded the optional docs-site template with clearer setup guidance and a

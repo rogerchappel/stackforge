@@ -3,6 +3,9 @@
 Agent-friendly software project scaffolding CLI for apps, APIs, CLIs, and OSS
 packages.
 
+StackForge requires Node.js 20 or newer. Its build, template checks, and CLI
+smoke tests run in CI on both Node.js 20 and the primary Node.js 22 runtime.
+
 ## Status
 
 Early build. StackForge is release-scoped as a CLI-first tool first, with
