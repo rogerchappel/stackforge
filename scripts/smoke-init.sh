@@ -175,6 +175,15 @@ grep -q "Refusing to overwrite" overwrite.err
 node "$repo_root/dist/index.js" init oss-cli smoke-app --force > force.json
 node "$repo_root/dist/index.js" init python-api py-api > py.json
 test -f py-api/src/py_api/main.py
+node "$repo_root/dist/index.js" init python-api 'My API' > python-spaced.json
+test -f 'My API/src/my_api/main.py'
+grep -q 'name = "my-api"' 'My API/pyproject.toml'
+node "$repo_root/dist/index.js" init python-api '123 Weird.API!' > python-punctuated.json
+test -f '123 Weird.API!/src/_123_weird_api/main.py'
+grep -q 'name = "123-weird-api"' '123 Weird.API!/pyproject.toml'
+python3 -m venv python-venv
+python-venv/bin/python -m pip install './My API' './123 Weird.API!'
+python-venv/bin/python -c 'from my_api.main import app; from _123_weird_api.main import app as numbered_app; assert app.title == "My API"; assert numbered_app.title == "123 Weird.API!"'
 node "$repo_root/dist/index.js" init next-app web-app > next.json
 test -f web-app/src/app/page.tsx
 test -f web-app/eslint.config.mjs
