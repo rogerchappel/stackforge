@@ -74,6 +74,13 @@ StackForge is local-first and review-friendly:
 - `next-app`: Next.js application
 - `python-api`: Python API service
 
+Project directory and display names may contain spaces or punctuation. For the
+`python-api` template, StackForge normalizes that name for Python packaging:
+`My API` becomes distribution `my-api` and import module `my_api`. Import
+modules whose normalized name begins with a digit receive a leading underscore
+(for example, `123 API` becomes `_123_api`). The original name remains the
+generated directory name and FastAPI display title.
+
 Generated repositories include `scripts/validate.sh` as the default local verification path. It runs the repo's normal local package checks when they exist, including `release:check`, and only runs `agent-qc ready` when `agent-qc` is installed, so `agent-qc` stays optional.
 
 The `next-app` scaffold ships an npm lockfile, `.gitignore`, `next-env.d.ts`,
