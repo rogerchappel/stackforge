@@ -5,6 +5,10 @@ packages.
 
 StackForge requires Node.js 20 or newer. Its build, template checks, and CLI
 smoke tests run in CI on both Node.js 20 and the primary Node.js 22 runtime.
+The full contributor `pnpm run release:check` also requires Python 3.11 or
+newer to install and import the generated `python-api` projects. StackForge
+checks `python3.13`, `python3.12`, `python3.11`, then `python3`; set
+`STACKFORGE_PYTHON` to select another compatible interpreter explicitly.
 
 ## Status
 
