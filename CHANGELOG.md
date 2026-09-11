@@ -29,6 +29,9 @@ format and uses semantic versioning when versioned releases are published.
   generated repository README template.
 - Tightened template file validation and aligned generated workflow action
   versions.
+- Updated the `next-app` template to Next.js 16.3.4 and sharp 0.35.4 to clear
+  the current high-severity advisory set, and aligned the generated
+  `next-env.d.ts` with Next.js 16.3.4 build output.
 
 ## Release Links
 
