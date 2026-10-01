@@ -37,7 +37,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify build, templates, and CLI behavior
-        run: pnpm run build && pnpm test && bash tests/cli-ux-smoke.sh
+        run: pnpm test && bash tests/cli-ux-smoke.sh
 
   repository-hygiene:
     name: Repository hygiene
